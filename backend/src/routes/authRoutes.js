@@ -4,7 +4,7 @@ import { registerUser, loginUser, logoutUser } from '../controllers/authControll
 const router = express.Router();
 
 // Routes ko controllers se map kiya
-router.post('/signup', registerUser);
+router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 
