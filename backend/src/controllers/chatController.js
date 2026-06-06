@@ -70,3 +70,106 @@ export const fetchChats = async (req, res) => {
         return res.status(500).json({ success: false, message: "Server Error", error: error.message });
     }
 };
+
+// ─── 3. CREATE A NEW GROUP CHAT ───
+export const createGroupChat = async (req, res) => {
+    try {
+        if (!req.body.users || !req.body.name) {
+            return res.status(400).json({ success: false, message: "Please fill all the fields" });
+        }
+
+        // Frontend se users array stringify ho kar aata hai, use parse karenge
+        var users = JSON.parse(req.body.users);
+
+        if (users.length < 2) {
+            return res.status(400).json({ success: false, message: "More than 2 users are required to form a group chat" });
+        }
+
+        // Logged-in user ko bhi group mein add karo
+        users.push(req.user._id);
+
+        const groupChat = await Chat.create({
+            chatName: req.body.name,
+            users: users,
+            isGroupChat: true,
+            groupAdmin: req.user._id,
+        });
+
+        const fullGroupChat = await Chat.findOne({ _id: groupChat._id })
+            .populate("users", "-password")
+            .populate("groupAdmin", "-password");
+
+        return res.status(200).json({ success: true, chat: fullGroupChat });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+};
+
+// ─── 4. RENAME AN EXISTING GROUP ───
+export const renameGroup = async (req, res) => {
+    try {
+        const { chatId, chatName } = req.body;
+
+        const updatedChat = await Chat.findByIdAndUpdate(
+            chatId,
+            { chatName: chatName },
+            { new: true }
+        )
+        .populate("users", "-password")
+        .populate("groupAdmin", "-password");
+
+        if (!updatedChat) {
+            return res.status(404).json({ success: false, message: "Chat Not Found" });
+        }
+        
+        return res.status(200).json({ success: true, chat: updatedChat });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+};
+
+// ─── 5. ADD A USER TO AN EXISTING GROUP ───
+export const addToGroup = async (req, res) => {
+    try {
+        const { chatId, userId } = req.body;
+
+        const added = await Chat.findByIdAndUpdate(
+            chatId,
+            { $push: { users: userId } },
+            { new: true }
+        )
+        .populate("users", "-password")
+        .populate("groupAdmin", "-password");
+
+        if (!added) {
+            return res.status(404).json({ success: false, message: "Chat Not Found" });
+        }
+        
+        return res.status(200).json({ success: true, chat: added });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+};
+
+// ─── 6. REMOVE A USER FROM A GROUP ───
+export const removeFromGroup = async (req, res) => {
+    try {
+        const { chatId, userId } = req.body;
+
+        const removed = await Chat.findByIdAndUpdate(
+            chatId,
+            { $pull: { users: userId } },
+            { new: true }
+        )
+        .populate("users", "-password")
+        .populate("groupAdmin", "-password");
+
+        if (!removed) {
+            return res.status(404).json({ success: false, message: "Chat Not Found" });
+        }
+        
+        return res.status(200).json({ success: true, chat: removed });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+};
