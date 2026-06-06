@@ -1,6 +1,6 @@
 import express from "express";
 import { accessChat, fetchChats } from "../controllers/chatController.js";
-import { protect } from "../middleware/authMiddleware.js"; // security guard check user is authorised or not 
+import { protect } from "../middlewares/authMiddleware.js"; // security guard check user is authorised or not 
 
 const router = express.Router();
 
