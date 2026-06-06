@@ -15,7 +15,7 @@ const router = express.Router();
 router.post("/", protect, accessChat); // to open or create chat
 router.get("/", protect, fetchChats);   // get all past chat details 
 
-// ─── GROUP CHATS (Sheryians Requirements) ───
+// ─── GROUP CHATS  ───
 router.post("/group", protect, createGroupChat);       // To create a new group
 router.put("/rename", protect, renameGroup);           // To rename an existing group
 router.put("/groupadd", protect, addToGroup);         // To add someone to a group
