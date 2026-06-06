@@ -11,5 +11,6 @@ app.use(cookieParser()); // for cookies read/write
 
 // Routes Links
 app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
 
 export default app;
