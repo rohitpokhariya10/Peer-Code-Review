@@ -11,6 +11,11 @@ export const sendMessage = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid data passed into request" });
         }
 
+        const chat = await Chat.findOne({ _id: chatId, users: req.user._id });
+        if (!chat) {
+            return res.status(403).json({ success: false, message: "You are not a member of this chat" });
+        }
+
         // Create the structure for the new message
         let newMessage = {
             sender: req.user._id, // Logged-in user's ID from protect middleware
@@ -42,6 +47,11 @@ export const sendMessage = async (req, res) => {
 export const allMessages = async (req, res) => {
     try {
         const { chatId } = req.params; // Get the chat ID from the URL parameter
+
+        const chat = await Chat.findOne({ _id: chatId, users: req.user._id });
+        if (!chat) {
+            return res.status(403).json({ success: false, message: "You are not a member of this chat" });
+        }
 
         // Find all messages belonging to this chat ID
         const messages = await Message.find({ chat: chatId })

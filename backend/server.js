@@ -56,7 +56,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start Server
-app.listen(port, () => {
+// Start the HTTP server so both Express routes and Socket.io events work.
+server.listen(port, () => {
   console.log(`Server is running at port: ${port}`);
 });

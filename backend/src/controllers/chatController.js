@@ -110,6 +110,15 @@ export const renameGroup = async (req, res) => {
     try {
         const { chatId, chatName } = req.body;
 
+        const group = await Chat.findOne({
+            _id: chatId,
+            isGroupChat: true,
+            groupAdmin: req.user._id,
+        });
+        if (!group) {
+            return res.status(403).json({ success: false, message: "Only the group admin can rename this group" });
+        }
+
         const updatedChat = await Chat.findByIdAndUpdate(
             chatId,
             { chatName: chatName },
@@ -133,6 +142,15 @@ export const addToGroup = async (req, res) => {
     try {
         const { chatId, userId } = req.body;
 
+        const group = await Chat.findOne({
+            _id: chatId,
+            isGroupChat: true,
+            groupAdmin: req.user._id,
+        });
+        if (!group) {
+            return res.status(403).json({ success: false, message: "Only the group admin can add users" });
+        }
+
         const added = await Chat.findByIdAndUpdate(
             chatId,
             { $push: { users: userId } },
@@ -155,6 +173,20 @@ export const addToGroup = async (req, res) => {
 export const removeFromGroup = async (req, res) => {
     try {
         const { chatId, userId } = req.body;
+
+        const group = await Chat.findOne({
+            _id: chatId,
+            isGroupChat: true,
+        });
+        if (!group) {
+            return res.status(404).json({ success: false, message: "Group chat not found" });
+        }
+
+        const isAdmin = group.groupAdmin.toString() === req.user._id.toString();
+        const isSelfRemoval = userId === req.user._id.toString();
+        if (!isAdmin && !isSelfRemoval) {
+            return res.status(403).json({ success: false, message: "Only the group admin can remove other users" });
+        }
 
         const removed = await Chat.findByIdAndUpdate(
             chatId,

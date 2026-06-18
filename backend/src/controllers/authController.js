@@ -1,6 +1,13 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  secure: process.env.NODE_ENV === "production",
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+};
+
 // ─── 1. REGISTER / SIGNUP CONTROLLER ───
 export const registerUser = async (req, res) => {
   try {
@@ -29,7 +36,7 @@ export const registerUser = async (req, res) => {
       expiresIn: "30d",
     });
 
-    res.cookie("token", token);
+    res.cookie("token", token, cookieOptions);
 
     return res.status(201).json({
       success: true,
@@ -46,7 +53,6 @@ export const registerUser = async (req, res) => {
 // ─── 2. LOGIN CONTROLLER ───
 export const loginUser = async (req, res) => {
   try {
-    console.log("Postman se aaya hua data:", req.body);
     let { email, password } = req.body;
 
     if (!email || !password) {
@@ -75,7 +81,7 @@ export const loginUser = async (req, res) => {
       expiresIn: "30d",
     });
 
-    res.cookie("token", token);
+    res.cookie("token", token, cookieOptions);
 
     return res.status(200).json({
       success: true,
@@ -91,7 +97,11 @@ export const loginUser = async (req, res) => {
 
 // ─── 3. LOGOUT CONTROLLER ───
 export const logoutUser = async (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: cookieOptions.sameSite,
+    secure: cookieOptions.secure,
+  });
   return res
     .status(200)
     .json({ success: true, message: "Logged out successfully!" });
